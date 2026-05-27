@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>H.M.F #1 — Check In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- Layer 0: Our own video element — fullscreen background -->
+  <video id="camera" autoplay playsinline muted></video>
+
+  <!-- Layer 1: Blueprint grid overlay -->
+  <div id="blueprint-overlay"></div>
+
+  <!-- Layer 2: All UI -->
+  <div id="app">
+    <header>
+      <div class="logo">Devfolio</div>
+      <div class="event-badge">H.M.F #1</div>
+    </header>
+
+    <div id="viewfinder">
+      <div class="crosshair">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="scan-line"></div>
+      </div>
+      <p class="hint">Hold your Luma ticket QR up to the camera</p>
+    </div>
+
+    <footer>
+      <span>HARDWARE WORKSHOP</span>
+      <span class="sep">&#x25C6;</span>
+      <span>30 May 2026</span>
+      <span class="sep">&#x25C6;</span>
+      <span>2586 Labs</span>
+    </footer>
+  </div>
+
+  <!-- Layer 10+: Modal -->
+  <div id="backdrop" class="hidden"></div>
+  <div id="modal" class="hidden">
+    <div class="modal-card" id="modal-card">
+      <div class="tama-screen">
+        <canvas id="tama-canvas" width="120" height="120"></canvas>
+      </div>
+      <div id="modal-body"></div>
+      <div class="modal-progress">
+        <div class="modal-progress-bar" id="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden canvas for QR frame capture -->
+  <canvas id="qr-canvas" style="display:none"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="/tamagotchi.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

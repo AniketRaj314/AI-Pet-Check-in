@@ -1,0 +1,36 @@
+import Database from "better-sqlite3";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const db = new Database(path.join(__dirname, "..", "checkins.db"));
+
+db.pragma("journal_mode = WAL");
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS checkins (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guest_id TEXT NOT NULL UNIQUE,
+    guest_name TEXT,
+    guest_email TEXT,
+    checked_in_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )
+`);
+
+export const insertCheckin = db.prepare<{
+  guest_id: string;
+  guest_name: string | null;
+  guest_email: string | null;
+}>(`INSERT INTO checkins (guest_id, guest_name, guest_email) VALUES (@guest_id, @guest_name, @guest_email)`);
+
+export const findCheckin = db.prepare<{ guest_id: string }>(
+  `SELECT * FROM checkins WHERE guest_id = @guest_id`
+);
+
+export const countCheckins = db.prepare(`SELECT COUNT(*) as count FROM checkins`);
+
+export const recentCheckins = db.prepare(
+  `SELECT guest_name, checked_in_at FROM checkins ORDER BY id DESC LIMIT 10`
+);
+
+export default db;
