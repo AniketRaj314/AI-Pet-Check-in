@@ -3,7 +3,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const db = new Database(path.join(__dirname, "..", "checkins.db"));
+const dataDir = process.env.DATA_DIR || path.join(__dirname, "..");
+const db = new Database(path.join(dataDir, "checkins.db"));
 
 db.pragma("journal_mode = WAL");
 

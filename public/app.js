@@ -4,8 +4,13 @@ let isProcessing = false;
 const RESET_DELAY = 5000;
 const isMobile = window.innerWidth <= 600;
 
+const DECODE_W = 640;
+const DECODE_H = 360;
+
 const $video = document.getElementById('camera');
 const $canvas = document.getElementById('qr-canvas');
+$canvas.width = DECODE_W;
+$canvas.height = DECODE_H;
 const ctx = $canvas.getContext('2d', { willReadFrequently: true });
 
 const $backdrop = document.getElementById('backdrop');
@@ -29,12 +34,6 @@ async function startCamera() {
     document.body.classList.add('mirrored');
   }
 
-  // Size the decode canvas to match the video's native resolution
-  $video.addEventListener('loadedmetadata', () => {
-    $canvas.width = $video.videoWidth;
-    $canvas.height = $video.videoHeight;
-  });
-
   startScanLoop();
 }
 
@@ -47,14 +46,8 @@ function startScanLoop() {
     }
 
     if ($video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
-      // Ensure canvas matches video
-      if ($canvas.width !== $video.videoWidth || $canvas.height !== $video.videoHeight) {
-        $canvas.width = $video.videoWidth;
-        $canvas.height = $video.videoHeight;
-      }
-
-      ctx.drawImage($video, 0, 0, $canvas.width, $canvas.height);
-      const imageData = ctx.getImageData(0, 0, $canvas.width, $canvas.height);
+      ctx.drawImage($video, 0, 0, DECODE_W, DECODE_H);
+      const imageData = ctx.getImageData(0, 0, DECODE_W, DECODE_H);
       const code = jsQR(imageData.data, imageData.width, imageData.height, {
         inversionAttempts: 'attemptBoth',
       });
@@ -68,7 +61,7 @@ function startScanLoop() {
     requestAnimationFrame(tick);
   }
 
-  scanLoopId = requestAnimationFrame(tick);
+  requestAnimationFrame(tick);
 }
 
 // --- Modal ---
