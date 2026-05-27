@@ -95,6 +95,7 @@ async function onScanSuccess(decodedText) {
   isProcessing = true;
 
   // Immediate feedback — QR detected, checking in
+  sfx.scan();
   tama.setState('idle');
   showModal('loading', `
     <h2>QR FOUND</h2>
@@ -111,6 +112,7 @@ async function onScanSuccess(decodedText) {
     const data = await res.json();
 
     if (data.ok) {
+      sfx.success();
       tama.setState('dance');
       showModal('success', `
         <h2>WELCOME!</h2>
@@ -118,6 +120,7 @@ async function onScanSuccess(decodedText) {
         <p class="sub-text">Check-in #${data.total_checkins}</p>
       `);
     } else if (data.already_checked_in) {
+      sfx.already();
       tama.setState('wave');
       showModal('already', `
         <h2>ALREADY IN!</h2>
@@ -125,6 +128,7 @@ async function onScanSuccess(decodedText) {
         <p class="sub-text">You're already checked in. Enjoy the workshop!</p>
       `);
     } else {
+      sfx.error();
       tama.setState('sad');
       showModal('error', `
         <h2>OOPS!</h2>
@@ -132,6 +136,7 @@ async function onScanSuccess(decodedText) {
       `);
     }
   } catch (err) {
+    sfx.error();
     tama.setState('sad');
     showModal('error', `
       <h2>OOPS!</h2>
