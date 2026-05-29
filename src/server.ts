@@ -9,7 +9,7 @@ import {
   extractProxyKey,
   guestDisplayName,
 } from "./luma.js";
-import { insertCheckin, findCheckin, countCheckins, recentCheckins } from "./db.js";
+import { insertCheckin, findCheckin, countCheckins, recentCheckins, deleteCheckinByEmail, deleteAllCheckins } from "./db.js";
 import { streamSSE } from "hono/streaming";
 
 const app = new Hono();
@@ -133,6 +133,20 @@ app.get("/api/stats", (c) => {
   const stats = countCheckins.get() as { count: number };
   const recent = recentCheckins.all();
   return c.json({ total: stats.count, recent });
+});
+
+app.delete("/api/check-in/:email", (c) => {
+  const email = c.req.param("email");
+  const result = deleteCheckinByEmail.run({ email });
+  if (result.changes === 0) {
+    return c.json({ ok: false, error: "No check-in found for that email" }, 404);
+  }
+  return c.json({ ok: true, deleted: result.changes });
+});
+
+app.delete("/api/check-in", (c) => {
+  const result = deleteAllCheckins.run();
+  return c.json({ ok: true, deleted: result.changes });
 });
 
 app.get("/*", serveStatic({ root: "./public" }));

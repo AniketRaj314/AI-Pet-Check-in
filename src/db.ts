@@ -34,4 +34,10 @@ export const recentCheckins = db.prepare(
   `SELECT guest_name, checked_in_at FROM checkins ORDER BY id DESC LIMIT 10`
 );
 
+export const deleteCheckinByEmail = db.prepare<{ email: string }>(
+  `DELETE FROM checkins WHERE guest_email = @email`
+);
+
+export const deleteAllCheckins = db.prepare(`DELETE FROM checkins`);
+
 export default db;
