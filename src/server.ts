@@ -10,11 +10,21 @@ import {
   guestDisplayName,
 } from "./luma.js";
 import { insertCheckin, findCheckin, countCheckins, recentCheckins } from "./db.js";
+import { streamSSE } from "hono/streaming";
 
 const app = new Hono();
 app.use("*", cors());
 
 const EVENT_ID = process.env.LUMA_EVENT_ID || "";
+
+// --- SSE: real-time check-in stream ---
+type SSEClient = (data: string) => void;
+const sseClients = new Set<SSEClient>();
+
+function broadcastCheckin(payload: { guest_name: string; guest_email: string | null; checked_in_at: string; total: number }) {
+  const data = JSON.stringify(payload);
+  for (const send of sseClients) send(data);
+}
 
 app.post("/api/check-in", async (c) => {
   const { qr_data } = await c.req.json<{ qr_data: string }>();
@@ -71,6 +81,13 @@ app.post("/api/check-in", async (c) => {
 
     const stats = countCheckins.get() as { count: number };
 
+    broadcastCheckin({
+      guest_name: guestDisplayName(guest),
+      guest_email: guest.user_email,
+      checked_in_at: new Date().toISOString(),
+      total: stats.count,
+    });
+
     return c.json({
       ok: true,
       guest_name: guestDisplayName(guest),
@@ -85,6 +102,31 @@ app.post("/api/check-in", async (c) => {
         : "Something went wrong — please try again";
     return c.json({ ok: false, error: msg }, 500);
   }
+});
+
+app.get("/api/checkin-stream", (c) => {
+  return streamSSE(c, async (stream) => {
+    const send: SSEClient = (data) => {
+      stream.writeSSE({ event: "checkin", data });
+    };
+
+    sseClients.add(send);
+    console.log(`SSE client connected (${sseClients.size} active)`);
+
+    // Keep-alive ping every 30s
+    const keepAlive = setInterval(() => {
+      stream.writeSSE({ event: "ping", data: "" });
+    }, 30_000);
+
+    stream.onAbort(() => {
+      clearInterval(keepAlive);
+      sseClients.delete(send);
+      console.log(`SSE client disconnected (${sseClients.size} active)`);
+    });
+
+    // Hold connection open
+    await new Promise(() => {});
+  });
 });
 
 app.get("/api/stats", (c) => {
