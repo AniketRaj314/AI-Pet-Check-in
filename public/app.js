@@ -4,8 +4,8 @@ let isProcessing = false;
 const RESET_DELAY = 5000;
 const isMobile = window.innerWidth <= 600;
 
-const DECODE_W = 640;
-const DECODE_H = 360;
+const DECODE_W = 960;
+const DECODE_H = 540;
 
 const $video = document.getElementById('camera');
 const $canvas = document.getElementById('qr-canvas');
