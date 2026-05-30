@@ -31,7 +31,7 @@ export const findCheckin = db.prepare<{ guest_id: string }>(
 export const countCheckins = db.prepare(`SELECT COUNT(*) as count FROM checkins`);
 
 export const recentCheckins = db.prepare(
-  `SELECT guest_name, guest_email, checked_in_at FROM checkins ORDER BY id DESC LIMIT 10`
+  `SELECT guest_name, guest_email, checked_in_at FROM checkins ORDER BY id DESC`
 );
 
 export const deleteCheckinByEmail = db.prepare<{ email: string }>(
