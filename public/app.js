@@ -14,10 +14,10 @@ $canvas.height = DECODE_H;
 const ctx = $canvas.getContext('2d', { willReadFrequently: true });
 
 // --- Robot arm trigger (best-effort, may be blocked by mixed content) ---
-const ROBOT_URL = 'http://192.168.0.69:9015';
+const ROBOT_URL = 'https://18a9-106-51-76-129.ngrok-free.app';
 
 function triggerRobot(endpoint) {
-  fetch(`${ROBOT_URL}/checkin/${endpoint}`, { mode: 'no-cors' }).catch(() => {});
+  fetch(`${ROBOT_URL}/checkin/${endpoint}`, { method: 'GET' }).catch(() => {});
 }
 
 const $backdrop = document.getElementById('backdrop');
