@@ -16,6 +16,14 @@ const app = new Hono();
 app.use("*", cors());
 
 const EVENT_ID = process.env.LUMA_EVENT_ID || "";
+const ROBOT_URL = process.env.ROBOT_URL || "";
+
+function triggerRobot(action: string) {
+  if (!ROBOT_URL) return;
+  fetch(`${ROBOT_URL}/checkin/${action}`).catch((err) =>
+    console.error(`[ROBOT] ${action} failed:`, err.message)
+  );
+}
 
 // --- SSE: real-time check-in stream ---
 type SSEClient = (data: string) => void;
@@ -64,6 +72,7 @@ app.post("/api/check-in", async (c) => {
     // Check if already checked in locally
     const existing = findCheckin.get({ guest_id: guest.id });
     if (existing) {
+      triggerRobot('no');
       return c.json({
         ok: false,
         error: "Already checked in",
@@ -80,6 +89,8 @@ app.post("/api/check-in", async (c) => {
     });
 
     const stats = countCheckins.get() as { count: number };
+
+    triggerRobot('yes');
 
     broadcastCheckin({
       guest_name: guestDisplayName(guest),
