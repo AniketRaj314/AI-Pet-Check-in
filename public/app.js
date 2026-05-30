@@ -13,6 +13,13 @@ $canvas.width = DECODE_W;
 $canvas.height = DECODE_H;
 const ctx = $canvas.getContext('2d', { willReadFrequently: true });
 
+// --- Robot arm trigger (best-effort, may be blocked by mixed content) ---
+const ROBOT_URL = 'http://192.168.0.69:9015';
+
+function triggerRobot(endpoint) {
+  fetch(`${ROBOT_URL}/checkin/${endpoint}`, { mode: 'no-cors' }).catch(() => {});
+}
+
 const $backdrop = document.getElementById('backdrop');
 const $modal = document.getElementById('modal');
 const $modalCard = document.getElementById('modal-card');
@@ -112,6 +119,7 @@ async function onScanSuccess(decodedText) {
     const data = await res.json();
 
     if (data.ok) {
+      triggerRobot('yes');
       sfx.success();
       tama.setState('dance');
       showModal('success', `
@@ -120,6 +128,7 @@ async function onScanSuccess(decodedText) {
         <p class="sub-text">Check-in #${data.total_checkins}</p>
       `);
     } else if (data.already_checked_in) {
+      triggerRobot('no');
       sfx.already();
       tama.setState('wave');
       showModal('already', `
@@ -128,6 +137,7 @@ async function onScanSuccess(decodedText) {
         <p class="sub-text">You're already checked in. Enjoy the workshop!</p>
       `);
     } else {
+      triggerRobot('no');
       sfx.error();
       tama.setState('sad');
       showModal('error', `
@@ -145,6 +155,7 @@ async function onScanSuccess(decodedText) {
   }
 
   setTimeout(() => {
+    triggerRobot('reset');
     hideModal();
     isProcessing = false;
     tama.setState('idle');
