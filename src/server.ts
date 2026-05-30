@@ -18,11 +18,18 @@ app.use("*", cors());
 const EVENT_ID = process.env.LUMA_EVENT_ID || "";
 const ROBOT_URL = process.env.ROBOT_URL || "";
 
+const ROBOT_DURATIONS: Record<string, number> = { yes: 4000, no: 4000, reset: 1500 };
+
 function triggerRobot(action: string) {
   if (!ROBOT_URL) return;
-  fetch(`${ROBOT_URL}/checkin/${action}`).catch((err) =>
-    console.error(`[ROBOT] ${action} failed:`, err.message)
-  );
+  fetch(`${ROBOT_URL}/checkin/${action}`)
+    .then(() => {
+      console.log(`[ROBOT] ${action} triggered`);
+      if (action !== 'reset') {
+        setTimeout(() => triggerRobot('reset'), ROBOT_DURATIONS[action] || 4000);
+      }
+    })
+    .catch((err) => console.error(`[ROBOT] ${action} failed:`, err.message));
 }
 
 // --- SSE: real-time check-in stream ---

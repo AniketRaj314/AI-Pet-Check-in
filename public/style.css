@@ -326,7 +326,7 @@ footer .sep {
 }
 
 .modal-progress-bar.animate {
-  animation: drain 5s linear forwards;
+  animation: drain 6s linear forwards;
 }
 
 @keyframes drain {

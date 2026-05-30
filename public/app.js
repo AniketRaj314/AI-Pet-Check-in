@@ -1,7 +1,7 @@
 const tama = new Tamagotchi('tama-canvas');
 
 let isProcessing = false;
-const RESET_DELAY = 5000;
+const RESET_DELAY = 6000;
 const isMobile = window.innerWidth <= 600;
 
 const DECODE_W = 960;
