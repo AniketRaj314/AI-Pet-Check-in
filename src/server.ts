@@ -15,7 +15,8 @@ import { streamSSE } from "hono/streaming";
 const app = new Hono();
 app.use("*", cors());
 
-const EVENT_ID = process.env.LUMA_EVENT_ID || "";
+const EVENT_IDS = (process.env.LUMA_EVENT_ID || "").split(",").map((s) => s.trim()).filter(Boolean);
+const SUNDOWNER_EVENT_ID = EVENT_IDS[1] || "";
 const ROBOT_URL = process.env.ROBOT_URL || "";
 
 const ROBOT_DURATIONS: Record<string, number> = { yes: 4000, no: 4000, reset: 1500 };
@@ -48,7 +49,7 @@ app.post("/api/check-in", async (c) => {
     return c.json({ ok: false, error: "No QR data provided" }, 400);
   }
 
-  if (!EVENT_ID) {
+  if (!EVENT_IDS.length) {
     return c.json({ ok: false, error: "LUMA_EVENT_ID not configured" }, 500);
   }
 
@@ -57,16 +58,30 @@ app.post("/api/check-in", async (c) => {
     const pk = extractProxyKey(qr_data);
 
     let guest;
-    if (pk) {
-      guest = await lookupGuestByProxyKey(EVENT_ID, pk);
-    } else {
-      // Treat raw QR data as a guest ID or ticket key
-      guest = await lookupGuestById(EVENT_ID, qr_data.trim());
+    let matchedEventId = "";
+
+    // Try each event until we find the guest
+    for (const eid of EVENT_IDS) {
+      try {
+        if (pk) {
+          guest = await lookupGuestByProxyKey(eid, pk);
+        } else {
+          guest = await lookupGuestById(eid, qr_data.trim());
+        }
+        if (guest) {
+          matchedEventId = eid;
+          break;
+        }
+      } catch {
+        // Guest not in this event, try next
+      }
     }
 
     if (!guest) {
       return c.json({ ok: false, error: "Guest not found" }, 404);
     }
+
+    const isSundowner = matchedEventId === SUNDOWNER_EVENT_ID;
 
     if (guest.approval_status !== "approved") {
       return c.json({
@@ -85,6 +100,7 @@ app.post("/api/check-in", async (c) => {
         error: "Already checked in",
         guest_name: guestDisplayName(guest),
         already_checked_in: true,
+        event_type: isSundowner ? "sundowner" : "workshop",
       }, 409);
     }
 
@@ -93,6 +109,7 @@ app.post("/api/check-in", async (c) => {
       guest_id: guest.id,
       guest_name: guestDisplayName(guest),
       guest_email: guest.user_email,
+      event_type: isSundowner ? "sundowner" : "workshop",
     });
 
     const stats = countCheckins.get() as { count: number };
@@ -110,6 +127,7 @@ app.post("/api/check-in", async (c) => {
       ok: true,
       guest_name: guestDisplayName(guest),
       total_checkins: stats.count,
+      event_type: isSundowner ? "sundowner" : "workshop",
     });
   } catch (err: any) {
     console.error("Check-in error:", err.message);

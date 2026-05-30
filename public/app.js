@@ -76,6 +76,7 @@ function showModal(type, html) {
   void $progressBar.offsetWidth;
   if (type !== 'loading') {
     $progressBar.style.background =
+      type === 'sundowner' ? '#ff00ff' :
       type === 'success' ? 'var(--green)' :
       type === 'already' ? 'var(--yellow)' :
       'var(--red)';
@@ -85,6 +86,7 @@ function showModal(type, html) {
 
 function hideModal() {
   $backdrop.classList.add('hidden');
+  $backdrop.classList.remove('party');
   $modal.classList.add('hidden');
   $progressBar.classList.remove('animate');
 }
@@ -111,22 +113,44 @@ async function onScanSuccess(decodedText) {
 
     const data = await res.json();
 
+    const isSundowner = data.event_type === 'sundowner';
+
     if (data.ok) {
-      sfx.success();
-      tama.setState('dance');
-      showModal('success', `
-        <h2>WELCOME!</h2>
-        <p class="guest-name">${esc(data.guest_name)}</p>
-        <p class="sub-text">Check-in #${data.total_checkins}</p>
-      `);
+      if (isSundowner) sfx.party(); else sfx.success();
+      if (isSundowner) {
+        tama.setState('dj-dance');
+        $backdrop.classList.add('party');
+        showModal('sundowner', `
+          <h2>WELCOME!</h2>
+          <p class="guest-name">${esc(data.guest_name)}</p>
+          <p class="sub-text">Sundowner check-in #${data.total_checkins}</p>
+        `);
+      } else {
+        tama.setState('dance');
+        showModal('success', `
+          <h2>WELCOME!</h2>
+          <p class="guest-name">${esc(data.guest_name)}</p>
+          <p class="sub-text">Check-in #${data.total_checkins}</p>
+        `);
+      }
     } else if (data.already_checked_in) {
       sfx.already();
-      tama.setState('wave');
-      showModal('already', `
-        <h2>ALREADY IN!</h2>
-        <p class="guest-name">${esc(data.guest_name)}</p>
-        <p class="sub-text">You're already checked in. Enjoy the workshop!</p>
-      `);
+      if (isSundowner) {
+        tama.setState('dj-dance');
+        $backdrop.classList.add('party');
+        showModal('sundowner', `
+          <h2>ALREADY IN!</h2>
+          <p class="guest-name">${esc(data.guest_name)}</p>
+          <p class="sub-text">You're already checked in. Enjoy the party!</p>
+        `);
+      } else {
+        tama.setState('wave');
+        showModal('already', `
+          <h2>ALREADY IN!</h2>
+          <p class="guest-name">${esc(data.guest_name)}</p>
+          <p class="sub-text">You're already checked in. Enjoy the workshop!</p>
+        `);
+      }
     } else {
       sfx.error();
       tama.setState('sad');

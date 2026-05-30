@@ -14,15 +14,24 @@ db.exec(`
     guest_id TEXT NOT NULL UNIQUE,
     guest_name TEXT,
     guest_email TEXT,
+    event_type TEXT NOT NULL DEFAULT 'workshop',
     checked_in_at TEXT NOT NULL DEFAULT (datetime('now'))
   )
 `);
+
+// Migration: add event_type to existing tables that don't have it
+try {
+  db.exec(`ALTER TABLE checkins ADD COLUMN event_type TEXT NOT NULL DEFAULT 'workshop'`);
+} catch {
+  // Column already exists — ignore
+}
 
 export const insertCheckin = db.prepare<{
   guest_id: string;
   guest_name: string | null;
   guest_email: string | null;
-}>(`INSERT INTO checkins (guest_id, guest_name, guest_email) VALUES (@guest_id, @guest_name, @guest_email)`);
+  event_type: string;
+}>(`INSERT INTO checkins (guest_id, guest_name, guest_email, event_type) VALUES (@guest_id, @guest_name, @guest_email, @event_type)`);
 
 export const findCheckin = db.prepare<{ guest_id: string }>(
   `SELECT * FROM checkins WHERE guest_id = @guest_id`
@@ -31,7 +40,7 @@ export const findCheckin = db.prepare<{ guest_id: string }>(
 export const countCheckins = db.prepare(`SELECT COUNT(*) as count FROM checkins`);
 
 export const recentCheckins = db.prepare(
-  `SELECT guest_name, guest_email, checked_in_at FROM checkins ORDER BY id DESC`
+  `SELECT guest_name, guest_email, event_type, checked_in_at FROM checkins ORDER BY id DESC`
 );
 
 export const deleteCheckinByEmail = db.prepare<{ email: string }>(

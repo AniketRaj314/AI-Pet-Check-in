@@ -48,4 +48,18 @@ const sfx = {
     playNote(311, 0.15, 0.18);
     playNote(247, 0.3, 0.3, 'square', 0.12);
   },
+
+  party() {
+    // Funky rising arpeggio with sawtooth bass
+    playNote(262, 0, 0.1, 'sawtooth', 0.12);
+    playNote(330, 0.08, 0.1, 'square', 0.14);
+    playNote(392, 0.16, 0.1, 'square', 0.14);
+    playNote(523, 0.24, 0.1, 'sawtooth', 0.12);
+    playNote(659, 0.32, 0.1, 'square', 0.14);
+    playNote(784, 0.4, 0.15, 'square', 0.12);
+    // Drop
+    playNote(131, 0.55, 0.3, 'sawtooth', 0.18);
+    playNote(1047, 0.55, 0.25, 'square', 0.1);
+    playNote(1319, 0.7, 0.3, 'triangle', 0.08);
+  },
 };
